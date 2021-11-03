@@ -1,6 +1,7 @@
 import threading
 import socket
 import pickle
+import re
 from datetime import datetime
 
 HOST = socket.gethostbyname(socket.gethostname())
@@ -23,10 +24,14 @@ def broadcast(message):
 def handle(client):
     while True:
         try:
-            message = client.recv(1024)
-            timestamp = datetime.now().strftime("%H:%M:%S")
-            print(f"[{timestamp}] {pickle.loads(message)}".strip())
-            broadcast(message)
+            index = clients.index(client)
+            nickname = nicknames[index]
+            message_raw = pickle.loads(client.recv(1024))
+            if re.sub(r"[\n\t\s]*", "", message_raw) != '':
+                message = f'{nickname}: {message_raw}\n'
+                timestamp = datetime.now().strftime("%H:%M:%S")
+                print(f"[{timestamp}] {message}".strip())
+                broadcast(pickle.dumps(message))
         except:
             timestamp = datetime.now().strftime("%H:%M:%S")
             index = clients.index(client)
