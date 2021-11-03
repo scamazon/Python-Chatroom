@@ -1,7 +1,6 @@
 import socket
 import threading
 import pickle
-import re
 from tkinter import *
 from tkinter.scrolledtext import *
 from tkinter.simpledialog import *
@@ -107,17 +106,16 @@ class Client:
 
         self.gui_done = True
 
-        self.win.bind('<Return>', lambda event:self.write())
+        self.input_area.bind('<Return>', lambda event:self.write())
 
         self.win.protocol("WM_DELETE_WINDOW", self.stop)
 
         self.win.mainloop()
 
     def write(self):
-        if re.sub(r"[\n\t\s]*", "", self.input_area.get()) != '':
-            message = f"{self.nickname}: {self.input_area.get()}\n"
-            self.sock.send(pickle.dumps(message))
-            self.input_area.delete(0, 'end')
+        message = str(self.input_area.get())
+        self.sock.send(pickle.dumps(message))
+        self.input_area.delete(0, 'end')
 
     def stop(self):
         self.running = False
