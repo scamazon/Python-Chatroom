@@ -68,6 +68,7 @@ class Client:
         self.nick_list = []
         self.nicks_done = False
         self.message_queue = []
+        self.message_count = 0
 
         gui_thread = threading.Thread(target=self.gui_loop)
         receive_thread = threading.Thread(target=self.receive)
@@ -149,14 +150,17 @@ class Client:
                 for message in self.message_queue:
                     if message == 'NICK':
                         self.sock.send(pickle.dumps(self.nickname))
-                    elif isinstance(message, list):
+                    elif isinstance(message[0], str):
                         self.nick_list = message
                         self.update_nicks()
                     else:
+                        color = "#%02x%02x%02x" % message[0]
+                        self.text_area.tag_config(f'message{self.message_count}', foreground=color)
                         self.text_area.config(state='normal')
-                        self.text_area.insert('end', message)
+                        self.text_area.insert('end', message[1], f'message{self.message_count}')
                         self.text_area.yview('end')
                         self.text_area.config(state='disabled')
+                        self.message_count += 1
                     self.message_queue.remove(message)
 
 client = Client()

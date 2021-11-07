@@ -2,6 +2,7 @@ import threading
 import socket
 import pickle
 import re
+import random
 from datetime import datetime
 
 HOST = socket.gethostbyname(socket.gethostname())
@@ -15,7 +16,11 @@ server.listen()
 clients = []
 nicknames = []
 addresses = []
+colors = []
 
+def random_color():
+    levels = range(0,128)
+    return tuple(random.choice(levels) for _ in range(3))
 
 def broadcast(message):
     for client in clients:
@@ -26,11 +31,12 @@ def handle(client):
         try:
             index = clients.index(client)
             nickname = nicknames[index]
+            color = colors[index]
             message_raw = pickle.loads(client.recv(1024))
             if re.sub(r"[\n\t\s]*", "", message_raw) != '':
-                message = f'{nickname}: {message_raw}\n'
+                message = [color, f'{nickname}: {message_raw}\n']
                 timestamp = datetime.now().strftime("%H:%M:%S")
-                print(f"[{timestamp}] {message}".strip())
+                print(f"[{timestamp}] {message[1]}".strip())
                 broadcast(pickle.dumps(message))
         except:
             timestamp = datetime.now().strftime("%H:%M:%S")
@@ -39,10 +45,12 @@ def handle(client):
             client.close()
             nickname = nicknames[index]
             address = addresses[index]
-            broadcast(pickle.dumps(f'{nickname} left the chat\n'))
+            color = colors[index]
+            broadcast(pickle.dumps([(255,0,0),f'{nickname} left the chat\n']))
             print(f"[{timestamp}] {nickname} disconnected.")
             nicknames.remove(nickname)
             addresses.remove(address)
+            colors.remove(color)
             update_nicks()
             break
 
@@ -64,15 +72,17 @@ def receive():
         client.send(pickle.dumps('NICK'))
         try:
             nickname = pickle.loads(client.recv(1024))
+            color = random_color()
 
             nicknames.append(nickname)
             clients.append(client)
             addresses.append(address[0])
+            colors.append(color)
 
             print(f'Nickname of the client is {nickname}.')
             update_nicks()
-            client.send(pickle.dumps('Connected to the server\n'))
-            broadcast(pickle.dumps(f'{nickname} joined the chat\n'))
+            client.send(pickle.dumps([(0,0,0),'Connected to the server\n']))
+            broadcast(pickle.dumps([(0,255,0),f'{nickname} joined the chat\n']))
 
             thread = threading.Thread(target=handle, args=(client,))
             thread.start()
