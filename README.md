@@ -1,7 +1,7 @@
 # Python Chatroom
 A basic chatroom built in Python.
 ## Features
-- Real-time messages to and from clients
+- Real-time messages between clients
 - Join and leave messages
 - List of online members
 - Unique colors for each client (new)
