@@ -3,6 +3,7 @@ import socket
 import pickle
 import re
 import random
+import colorsys
 from datetime import datetime
 
 HOST = socket.gethostbyname(socket.gethostname())
@@ -19,8 +20,8 @@ addresses = []
 colors = []
 
 def random_color():
-    levels = range(0,128)
-    return tuple(random.choice(levels) for _ in range(3))
+    color = colorsys.hsv_to_rgb(random.random(), 0.82, 171)
+    return (int(color[0]),int(color[1]),int(color[2]))
 
 def broadcast(message):
     for client in clients:
@@ -46,7 +47,7 @@ def handle(client):
             nickname = nicknames[index]
             address = addresses[index]
             color = colors[index]
-            broadcast(pickle.dumps([(255,0,0),f'{nickname} left the chat\n']))
+            broadcast(pickle.dumps([(200,0,0),f'{nickname} left the chat\n']))
             print(f"[{timestamp}] {nickname} disconnected.")
             nicknames.remove(nickname)
             addresses.remove(address)
@@ -82,7 +83,7 @@ def receive():
             print(f'Nickname of the client is {nickname}.')
             update_nicks()
             client.send(pickle.dumps([(0,0,0),'Connected to the server\n']))
-            broadcast(pickle.dumps([(0,255,0),f'{nickname} joined the chat\n']))
+            broadcast(pickle.dumps([(0,200,0),f'{nickname} joined the chat\n']))
 
             thread = threading.Thread(target=handle, args=(client,))
             thread.start()
